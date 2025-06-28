@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'swapi_services.dart';
 import 'favorites_service.dart';
+import 'character_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> characters = [];
+  List<Map<String, dynamic>> filteredCharacters = [];
   bool isLoading = false;
   final TextEditingController searchController = TextEditingController();
 
@@ -25,21 +27,26 @@ class _HomePageState extends State<HomePage> {
     final data = await SwapiService.fetchAllPeople();
     setState(() {
       characters = data;
+      filteredCharacters = data;
       isLoading = false;
     });
   }
 
-  Future<void> _searchCharacters(String query) async {
+  void _searchCharacters(String query) {
     if (query.trim().isEmpty) {
-      return _loadCharacters();
-    }
+      setState(() {
+        filteredCharacters = characters;
+      });
+    } else {
+      final results = characters.where((char) {
+        final name = char['name']?.toLowerCase() ?? '';
+        return name.contains(query.toLowerCase());
+      }).toList();
 
-    setState(() => isLoading = true);
-    final results = await SwapiService.searchPeople(query);
-    setState(() {
-      characters = results;
-      isLoading = false;
-    });
+      setState(() {
+        filteredCharacters = results;
+      });
+    }
   }
 
   @override
@@ -55,7 +62,9 @@ class _HomePageState extends State<HomePage> {
           children: [
             TextField(
               controller: searchController,
-              onChanged: _searchCharacters,
+              onChanged: (value) {
+                _searchCharacters(value);
+              },
               decoration: InputDecoration(
                 hintText: 'Buscar personaje...',
                 prefixIcon: const Icon(Icons.search),
@@ -70,13 +79,14 @@ class _HomePageState extends State<HomePage> {
             if (isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (characters.isEmpty)
-              const Expanded(child: Center(child: Text('No se encontraron personajes')))
+              const Expanded(
+                  child: Center(child: Text('No se encontraron personajes')))
             else
               Expanded(
                 child: ListView.builder(
-                  itemCount: characters.length,
+                  itemCount: filteredCharacters.length,
                   itemBuilder: (_, index) {
-                    final char = characters[index];
+                    final char = filteredCharacters[index];
                     return FutureBuilder<bool>(
                       future: FavoritesService.isFavorite(char['url']),
                       builder: (context, snapshot) {
@@ -84,7 +94,8 @@ class _HomePageState extends State<HomePage> {
                         return Card(
                           child: ListTile(
                             title: Text(char['name'] ?? 'Sin nombre'),
-                            subtitle: Text('Género: ${char['gender'] ?? 'desconocido'}'),
+                            subtitle: Text(
+                                'Género: ${char['gender'] ?? 'desconocido'}'),
                             trailing: IconButton(
                               icon: Icon(
                                 isFav ? Icons.star : Icons.star_border,
@@ -92,9 +103,18 @@ class _HomePageState extends State<HomePage> {
                               ),
                               onPressed: () async {
                                 await FavoritesService.toggleFavorite(char);
-                                setState(() {}); 
+                                setState(() {});
                               },
                             ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CharacterDetailPage(character: char),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
