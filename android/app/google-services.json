@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "463713572856",
+    "project_id": "starwarsapi-3868b",
+    "storage_bucket": "starwarsapi-3868b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463713572856:android:c3d4d81859002e98ef280d",
+        "android_client_info": {
+          "package_name": "com.example.starwars_project_examen2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiG0T2AKLNVPFhPeZbY7lH4qWIXf43LVo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
